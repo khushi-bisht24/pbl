@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deadlock Detection - Home</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #0077cc;
+      padding: 30px;
+      color: white;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    main {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      margin-top: 20px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 12px 25px;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .info {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #333;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    Dynamic Deadlock Detection and Recovery
+  </header>
+
+  <main>
+    <div class="info">
+      <p>This simulator checks if a deadlock exists in a system based on a wait-for graph.</p>
+      <p>Enter the wait-for graph as a 2D array (e.g., <code>[[0,1,0],[0,0,1],[1,0,0]]</code>)</p>
+    </div>
+
+    <form method="POST">
+      <textarea name="graph">[[0,1,0],[0,0,1],[1,0,0]]</textarea>
+      <button type="submit">Check for Deadlock</button>
+    </form>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+  </main>
+
+</body>
+</html>
