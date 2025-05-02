@@ -1,56 +1,53 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for
+import json
 
 app = Flask(__name__)
 
-class DeadlockSimulator:
-    def __init__(self):
-        self.graph = []
+def detect_and_recover(data):
+    n = data['numProcesses']
+    m = data['numResources']
+    alloc = data['alloc']
+    req = data['req']
+    avail = data['avail']
 
-    def load_graph(self, graph):
-        self.graph = graph
+    finish = [False] * n
+    work = avail[:]
+    changed = True
 
-    def detect_deadlock(self):
-        n = len(self.graph)
-        visited = [False] * n
-        rec_stack = [False] * n
+    while changed:
+        changed = False
+        for i in range(n):
+            if not finish[i] and all(req[i][j] <= work[j] for j in range(m)):
+                for j in range(m):
+                    work[j] += alloc[i][j]
+                finish[i] = True
+                changed = True
 
-        def is_cyclic(v):
-            visited[v] = True
-            rec_stack[v] = True
-            for i in range(n):
-                if self.graph[v][i]:
-                    if not visited[i] and is_cyclic(i):
-                        return True
-                    elif rec_stack[i]:
-                        return True
-            rec_stack[v] = False
-            return False
+    deadlocked = [i for i in range(n) if not finish[i]]
+    terminated = []
 
-        for node in range(n):
-            if not visited[node]:
-                if is_cyclic(node):
-                    return True
-        return False
+    while deadlocked:
+        proc = deadlocked[0]
+        for j in range(m):
+            work[j] += alloc[proc][j]
+        finish[proc] = True
+        terminated.append(proc)
+        deadlocked = [i for i in range(n) if not finish[i]]
 
-simulator = DeadlockSimulator()
+    return {
+        "safe": all(finish),
+        "terminated": terminated
+    }
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        graph = request.form.get("graph")
-        try:
-            graph_data = eval(graph)
-            simulator.load_graph(graph_data)
-            deadlock = simulator.detect_deadlock()
-            return redirect(url_for("result", deadlock=deadlock))
-        except:
-            return render_template("index.html", error="Invalid input. Please enter a valid 2D array.")
     return render_template("index.html")
 
-@app.route("/result")
+@app.route("/result", methods=["POST"])
 def result():
-    deadlock = request.args.get("deadlock", "false") == "True"
-    return render_template("result.html", deadlock=deadlock)
+    data = json.loads(request.form["matrixData"])
+    result = detect_and_recover(data)
+    return render_template("result.html", result=result)
 
 if __name__ == "__main__":
     app.run(debug=True)

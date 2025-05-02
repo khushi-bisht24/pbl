@@ -1,86 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Deadlock Detection - Home</title>
+  <title>Deadlock Detection</title>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
+    body { font-family: Arial; background: #f8f9fa; margin: 0; }
+    h1 { text-align: center; margin-top: 40px; }
+    .container {
+      width: 700px; margin: auto; background: white;
+      padding: 30px; margin-top: 20px;
+      border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
-    header {
-      background-color: #0077cc;
-      padding: 30px;
-      color: white;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    main {
-      max-width: 800px;
-      margin: 30px auto;
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-      margin-top: 20px;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input[type="number"] {
+      width: 100%; padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc; border-radius: 6px;
     }
     button {
-      padding: 12px 25px;
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      margin-top: 20px;
-      cursor: pointer;
+      background: #0069ff; color: white;
+      padding: 10px 20px; border: none;
+      border-radius: 6px; font-size: 16px;
+      cursor: pointer; margin-top: 10px;
     }
-    button:hover {
-      background-color: #005fa3;
-    }
-    .info {
-      margin-top: 10px;
-      font-size: 16px;
-      color: #333;
-    }
-    .error {
-      color: red;
-      margin-top: 10px;
-    }
+    button:hover { background: #0051cc; }
+    table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
   </style>
 </head>
 <body>
+  <h1>Deadlock Detection</h1>
+  <div class="container">
+    <label>Number of Processes:</label>
+    <input type="number" id="numProcesses" min="1">
 
-  <header>
-    Dynamic Deadlock Detection and Recovery
-  </header>
+    <label>Number of Resources:</label>
+    <input type="number" id="numResources" min="1">
 
-  <main>
-    <div class="info">
-      <p>This simulator checks if a deadlock exists in a system based on a wait-for graph.</p>
-      <p>Enter the wait-for graph as a 2D array (e.g., <code>[[0,1,0],[0,0,1],[1,0,0]]</code>)</p>
-    </div>
-
-    <form method="POST">
-      <textarea name="graph">[[0,1,0],[0,0,1],[1,0,0]]</textarea>
-      <button type="submit">Check for Deadlock</button>
+    <button onclick="generateMatrices()">Setup</button>
+    <form id="matrixForm" method="POST" action="/result">
+      <div id="matrixInputs"></div>
+      <input type="hidden" name="matrixData" id="matrixData">
+      <button type="submit" onclick="prepareData()">Start Detection</button>
     </form>
+  </div>
 
-    {% if error %}
-    <div class="error">{{ error }}</div>
-    {% endif %}
-  </main>
+  <script>
+    function generateMatrices() {
+      const p = parseInt(document.getElementById("numProcesses").value);
+      const r = parseInt(document.getElementById("numResources").value);
+      const div = document.getElementById("matrixInputs");
+      if (!p || !r) return alert("Enter valid numbers");
 
+      div.innerHTML = generateTable("Allocation", "alloc", p, r)
+                    + generateTable("Request", "req", p, r)
+                    + generateTable("Available", "avail", 1, r);
+    }
+
+    function generateTable(title, prefix, rows, cols) {
+      let html = `<h3>${title} Matrix</h3><table><tr><th></th>`;
+      for (let j = 0; j < cols; j++) html += `<th>R${j}</th>`;
+      html += "</tr>";
+      for (let i = 0; i < rows; i++) {
+        html += `<tr><th>${prefix !== "avail" ? "P" + i : ""}</th>`;
+        for (let j = 0; j < cols; j++) {
+          html += `<td><input type="number" name="${prefix}_${i}_${j}" min="0" style="width:50px"></td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</table>";
+      return html;
+    }
+
+    function prepareData() {
+      const p = parseInt(document.getElementById("numProcesses").value);
+      const r = parseInt(document.getElementById("numResources").value);
+      const data = {
+        numProcesses: p,
+        numResources: r,
+        alloc: [],
+        req: [],
+        avail: []
+      };
+
+      for (let i = 0; i < p; i++) {
+        data.alloc[i] = [];
+        data.req[i] = [];
+        for (let j = 0; j < r; j++) {
+          data.alloc[i][j] = parseInt(document.querySelector(`[name='alloc_${i}_${j}']`).value || 0);
+          data.req[i][j] = parseInt(document.querySelector(`[name='req_${i}_${j}']`).value || 0);
+        }
+      }
+
+      for (let j = 0; j < r; j++) {
+        data.avail[j] = parseInt(document.querySelector(`[name='avail_0_${j}']`).value || 0);
+      }
+
+      document.getElementById("matrixData").value = JSON.stringify(data);
+    }
+  </script>
 </body>
 </html>

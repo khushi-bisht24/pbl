@@ -1,65 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Simulation Result</title>
+  <title>Detection Result</title>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #0077cc;
-      padding: 30px;
-      color: white;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-    }
-    main {
-      max-width: 700px;
-      margin: 40px auto;
-      background: white;
-      padding: 40px;
+    body { font-family: Arial; background: #f0f2f5; margin: 0; padding: 0; }
+    .box {
+      max-width: 700px; margin: 60px auto;
+      background: white; padding: 40px;
       border-radius: 10px;
       text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-    .result {
-      font-size: 22px;
-      font-weight: bold;
-      color: #333;
-    }
-    .deadlock {
-      color: #b30000;
-    }
-    .safe {
-      color: #008000;
-    }
+    .safe { color: green; font-size: 20px; }
+    .deadlock { color: red; font-size: 20px; }
     a {
-      margin-top: 20px;
-      display: inline-block;
-      text-decoration: none;
-      color: #0077cc;
+      margin-top: 20px; display: inline-block;
+      text-decoration: none; color: #0069ff;
     }
   </style>
 </head>
 <body>
-
-  <header>
-    Simulation Result
-  </header>
-
-  <main>
-    {% if deadlock %}
-      <div class="result deadlock">⚠️ Deadlock Detected in the System!</div>
+  <div class="box">
+    <h2>Detection Result</h2>
+    {% if result.terminated|length == 0 %}
+      <p class="safe">✅ No Deadlock Detected. System is Safe.</p>
     {% else %}
-      <div class="result safe">✅ No Deadlock Detected. The system is safe.</div>
+      <p class="deadlock">⚠️ Deadlock was Detected.</p>
+      <p class="safe">✅ Recovery Successful. Terminated processes: {{ result.terminated | join(", ") }}</p>
     {% endif %}
-    <a href="/">← Run Another Simulation</a>
-  </main>
-
+    <a href="/">← Back to Home</a>
+  </div>
 </body>
 </html>
